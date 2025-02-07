@@ -1,16 +1,15 @@
 import pytest
 
 from src.code_embedding import CodeEmbedder, ScriptMetadata
+from src.script_content_reader import ScriptContentReader
+from src.script_metadata_extractor import ScriptMetadataExtractor
 
 @pytest.mark.parametrize(
     'readme_content, expected',
     [
-        (['print(\"Hello, World! from script\")'], [ScriptMetadata(readme_start=0, readme_end=0, path='script.py', content='')])],
-        id='one_tagged_script'
+        (['print("Hello, World! from script")'], [ScriptMetadata(readme_start=0, readme_end=0, path='script.py', content='')])],
     )
 def test_script_path_extractor(readme_content, expected):
     script_path_extractor = ScriptPathExtractor()
     result = script_path_extractor.extract(readme_content=readme_content)
     assert result == expected
-
-# Additional functions and test cases can be added here to further align with the gold code.

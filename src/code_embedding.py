@@ -1,2 +1,2 @@
-.*?:"
-        self._code_block_end = "
+.*?:'
+        self._code_block_end = '

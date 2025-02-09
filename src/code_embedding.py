@@ -51,9 +51,11 @@ class CodeEmbedder:
         self,
         readme_paths: list[str],
         script_path_extractor: ScriptPathExtractor,
+        script_metadata_extractor: 'ScriptMetadataExtractor',
     ) -> None:
         self._readme_paths = readme_paths
         self._script_path_extractor = script_path_extractor
+        self._script_metadata_extractor = script_metadata_extractor
 
     def __call__(self) -> None:
         for readme_path in self._readme_paths:
@@ -112,6 +114,7 @@ class CodeEmbedder:
         readme_content: list[str],
         readme_path: str,
     ) -> None:
+        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 

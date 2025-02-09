@@ -62,7 +62,6 @@ def test_script_path_extractor(
 
 def test_code_embedder_read_script_content() -> None:
     code_embedder = CodeEmbedder(
-        readme_paths=["tests/data/readme.md"],
         script_metadata_extractor=ScriptMetadataExtractor(),
         script_content_reader=ScriptContentReader(),
     )

@@ -90,10 +90,8 @@ class CodeEmbedder:
         if not scripts:
             return
 
-        script_contents = self._read_script_content(scripts=scripts)
-        script_contents.sort(key=lambda x: x.readme_start)
         self._update_readme(
-            script_contents=script_contents,
+            script_contents=scripts,
             readme_content=readme_content,
             readme_path=readme_path,
         )
@@ -120,20 +118,6 @@ class CodeEmbedder:
         )
         return scripts
 
-    def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
-        reader = self._script_content_reader
-        script_contents: list[ScriptMetadata] = []
-
-        for script in scripts:
-            try:
-                script.content = reader.read(script.path)
-                script_contents.append(script)
-
-            except FileNotFoundError:
-                logger.error(f"Error: {script.path} not found. Skipping.")
-
-        return script_contents
-
     def _update_readme(
         self,
         script_contents: list[ScriptMetadata],
@@ -143,7 +127,7 @@ class CodeEmbedder:
         updated_readme = []
         readme_content_cursor = 0
 
-        for script in script_contents:
+        for script in sorted(script_contents, key=lambda x: x.readme_start):
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
             updated_readme += [script.content + "\n"]
 

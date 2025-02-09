@@ -42,7 +42,7 @@ class ScriptPathExtractor:
 
     def _finish_current_block(self, block: dict, end_row: int) -> ScriptMetadata:
         return ScriptMetadata(
-            readme_start=block["start"], readme_end=end_row, path=block["path"]
+            readme_start=block["start"], readme_end=end_row, path=block["path"], content=""
         )
 
 

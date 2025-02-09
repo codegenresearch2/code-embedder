@@ -46,16 +46,36 @@ class ScriptPathExtractor:
         )
 
 
+class ScriptMetadataExtractorInterface:
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+        raise NotImplementedError
+
+
+class ScriptContentReaderInterface:
+    def read(self, path: str) -> str:
+        raise NotImplementedError
+
+
+class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+        extractor = ScriptPathExtractor()
+        return extractor.extract(readme_content)
+
+
+class ConcreteScriptContentReader(ScriptContentReaderInterface):
+    def read(self, path: str) -> str:
+        with open(path) as script_file:
+            return script_file.read()
+
+
 class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_path_extractor: ScriptPathExtractor,
-        script_metadata_extractor: ScriptMetadataExtractor,
-        script_content_reader: ScriptContentReader,
+        script_metadata_extractor: ScriptMetadataExtractorInterface,
+        script_content_reader: ScriptContentReaderInterface,
     ) -> None:
         self._readme_paths = readme_paths
-        self._script_path_extractor = script_path_extractor
         self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
 
@@ -92,7 +112,8 @@ class CodeEmbedder:
     def _extract_scripts(
         self, readme_content: list[str], readme_path: str
     ) -> list[ScriptMetadata] | None:
-        scripts = self._script_path_extractor.extract(readme_content=readme_content)
+        extractor = self._script_metadata_extractor
+        scripts = extractor.extract(readme_content=readme_content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
@@ -103,13 +124,12 @@ class CodeEmbedder:
         return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
+        reader = self._script_content_reader
         script_contents: list[ScriptMetadata] = []
 
         for script in scripts:
             try:
-                with open(script.path) as script_file:
-                    script.content = script_file.read()
-
+                script.content = reader.read(script.path)
                 script_contents.append(script)
 
             except FileNotFoundError:
@@ -128,7 +148,7 @@ class CodeEmbedder:
 
         for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += script.content + "\n"
+            updated_readme += [script.content + "\n"]
 
             readme_content_cursor = script.readme_end
 

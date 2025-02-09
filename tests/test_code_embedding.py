@@ -72,6 +72,8 @@ def test_code_embedder(tmp_path) -> None:
     original_paths = [f"tests/data/readme{i}.md" for i in range(3)]
     expected_paths = [f"tests/data/expected_readme{i}.md" for i in range(3)]
     temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(3)]
+
+    # Copy the original README files to the temporary paths
     for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
         with open(original_path) as readme_file:
             temp_readme_path.write_text(readme_file.read())
@@ -91,7 +93,7 @@ def test_code_embedder(tmp_path) -> None:
 
 This revised code snippet addresses the feedback by:
 1. Separating the initialization of the original and expected paths from the temporary paths.
-2. Using the temporary paths directly when creating the list for the `CodeEmbedder`.
+2. Using a list comprehension to directly convert the temporary paths to strings.
 3. Ensuring consistent and descriptive variable naming.
-4. Using a single loop to verify the expected output against the updated files.
-5. Organizing the code clearly to separate setup, execution, and verification phases.
+4. Organizing the code clearly to separate setup, execution, and verification phases.
+5. Removing any redundant code or lines that are not part of the actual test logic.

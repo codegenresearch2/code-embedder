@@ -1,6 +1,5 @@
 from src.script_metadata import ScriptMetadata
 
-
 def create_script_metadata(
     start: int,
     end: int,

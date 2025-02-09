@@ -1,7 +1,7 @@
 import pytest
-
 from src.code_embedding import CodeEmbedder, ScriptMetadata
-
+from src.script_content_reader import ScriptContentReader
+from src.script_metadata_extractor import ScriptMetadataExtractor
 
 @pytest.mark.parametrize(
     "readme_content, expected",
@@ -48,22 +48,21 @@ from src.code_embedding import CodeEmbedder, ScriptMetadata
         "one_untagged_script",
         "empty_readme",
         "one_untagged_script_language_specified",
-        "one_tagged_script_one_untagged_script",
         "two_tagged_scripts_one_untagged_script",
     ],
 )
-def test_script_path_extractor(
-    readme_content: list[str], expected: list[ScriptMetadata]
-) -> None:
+def test_script_path_extractor(readme_content: list[str], expected: list[ScriptMetadata]) -> None:
     script_path_extractor = ScriptMetadata.from_readme_content(readme_content)
     result = script_path_extractor.extract()
     assert result == expected
 
-
 def test_code_embedder_read_script_content() -> None:
+    script_metadata_extractor = ScriptMetadataExtractor()
+    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=["tests/data/readme.md"],
-        script_path_extractor=ScriptMetadata.from_readme_content,
+        script_metadata_extractor=script_metadata_extractor,
+        script_content_reader=script_content_reader,
     )
 
     scripts = code_embedder._read_script_content(
@@ -81,7 +80,6 @@ def test_code_embedder_read_script_content() -> None:
             content='print("Hello, World! from script")\n',
         )
     ]
-
 
 def test_code_embedder(tmp_path) -> None:
     original_paths = [
@@ -101,9 +99,12 @@ def test_code_embedder(tmp_path) -> None:
         with open(original_path) as readme_file:
             temp_readme_path.write_text(readme_file.read())
 
+    script_metadata_extractor = ScriptMetadataExtractor()
+    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=[str(temp_readme_path) for temp_readme_path in temp_readme_paths],
-        script_path_extractor=ScriptMetadata.from_readme_content,
+        script_metadata_extractor=script_metadata_extractor,
+        script_content_reader=script_content_reader,
     )
 
     code_embedder()

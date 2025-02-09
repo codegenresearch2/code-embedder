@@ -1,7 +1,8 @@
 import argparse
 from loguru import logger
-from src.code_embedding import CodeEmbedder, ScriptContentReader
+from src.code_embedding import CodeEmbedder
 from src.script_metadata_extractor import ScriptMetadataExtractor
+from src.script_content_reader import ScriptContentReader
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

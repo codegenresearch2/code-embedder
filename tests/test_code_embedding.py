@@ -79,23 +79,33 @@ def test_code_embedder(tmp_path) -> None:
     script_metadata_extractor = ScriptMetadataExtractor()
     script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
-        readme_paths=[str(tmp_path / "readme.md")],
+        readme_paths=[str(tmp_path / f"readme{i}.md") for i in range(3)],
         script_metadata_extractor=script_metadata_extractor,
         script_content_reader=script_content_reader,
     )
 
-    # Create a temporary copy of the original file
-    original_path = "tests/data/readme.md"
-    temp_readme_path = tmp_path / "readme.md"
-    with open(original_path) as readme_file:
-        temp_readme_path.write_text(readme_file.read())
+    # Create temporary copies of the original README files
+    original_paths = [f"tests/data/readme{i}.md" for i in range(3)]
+    temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(3)]
+    for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
+        with open(original_path) as readme_file:
+            temp_readme_path.write_text(readme_file.read())
 
     code_embedder()
 
-    # Additional assertions can be added here to verify the expected behavior of the code_embedder function
+    # Verify the expected output for each README file
+    for i in range(3):
+        with open(f"tests/data/expected_readme{i}.md") as expected_file:
+            expected_readme_content = expected_file.readlines()
+
+        with open(temp_readme_paths[i]) as updated_file:
+            updated_readme_content = updated_file.readlines()
+
+        assert expected_readme_content == updated_readme_content
 
 
 This revised code snippet addresses the feedback by:
 1. Implementing the `from_readme_content` method in the `ScriptMetadata` class.
-2. Ensuring that the `readme_paths` provided in the `CodeEmbedder` class point to valid files by creating temporary copies for testing.
-3. Adding assertions to compare the expected content of the README files with the updated content after processing.
+2. Handling multiple README files by creating temporary copies for each file.
+3. Adding assertions to verify the expected output for each README file.
+4. Ensuring the code is structured for readability and clarity.

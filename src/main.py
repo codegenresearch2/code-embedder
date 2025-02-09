@@ -11,8 +11,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    script_content_reader = ScriptContentReader()
     script_metadata_extractor = ScriptMetadataExtractor()
+    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=args.readme_paths,
         script_metadata_extractor=script_metadata_extractor,

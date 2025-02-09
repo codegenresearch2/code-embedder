@@ -13,4 +13,4 @@ def create_script_metadata(
         path=path,
         extraction_part=extraction_part,
         content=content
-    
+    )

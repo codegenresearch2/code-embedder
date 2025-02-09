@@ -109,7 +109,7 @@ class CodeEmbedder:
         self, readme_content: list[str], readme_path: str
     ) -> list[ScriptMetadata] | None:
         extractor = self._script_metadata_extractor
-        scripts = extractor.extract(readme_content=readme_content)
+        scripts = extractor.extract(readme_content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None

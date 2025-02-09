@@ -1,2 +1,2 @@
-.*?:'  # Corrected regex to match code block start
+.*?:'  # Corrected regex pattern
         self._code_block_end = '

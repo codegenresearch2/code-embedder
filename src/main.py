@@ -15,8 +15,8 @@ if __name__ == "__main__":
     script_metadata_extractor = ScriptMetadataExtractor()
     code_embedder = CodeEmbedder(
         readme_paths=args.readme_paths,
-        script_content_reader=script_content_reader,
         script_metadata_extractor=script_metadata_extractor,
+        script_content_reader=script_content_reader,
     )
     code_embedder()
     logger.info("Code Embedder finished successfully.")

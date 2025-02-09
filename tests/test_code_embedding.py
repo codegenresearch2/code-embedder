@@ -1,7 +1,7 @@
 import pytest
-
 from src.code_embedding import CodeEmbedder, ScriptMetadata
-
+from src.script_metadata_extractor import ScriptMetadataExtractor
+from src.script_content_reader import ScriptContentReader
 
 @pytest.mark.parametrize(
     "readme_content, expected",
@@ -56,15 +56,15 @@ from src.code_embedding import CodeEmbedder, ScriptMetadata
 def test_script_path_extractor(
     readme_content: list[str], expected: list[ScriptMetadata]
 ) -> None:
-    code_embedder = CodeEmbedder(script_path_extractor=ScriptPathExtractor())
+    code_embedder = CodeEmbedder(script_metadata_extractor=ScriptMetadataExtractor(), script_content_reader=ScriptContentReader())
     result = code_embedder.extract_script_metadata(readme_content=readme_content)
     assert result == expected
-
 
 def test_code_embedder_read_script_content() -> None:
     code_embedder = CodeEmbedder(
         readme_paths=["tests/data/readme.md"],
-        script_path_extractor=ScriptPathExtractor(),
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
     )
 
     scripts = code_embedder._read_script_content(
@@ -82,7 +82,6 @@ def test_code_embedder_read_script_content() -> None:
             content='print("Hello, World! from script")\n',
         )
     ]
-
 
 def test_code_embedder(tmp_path) -> None:
     original_paths = [
@@ -104,7 +103,8 @@ def test_code_embedder(tmp_path) -> None:
 
     code_embedder = CodeEmbedder(
         readme_paths=[str(temp_readme_path) for temp_readme_path in temp_readme_paths],
-        script_path_extractor=ScriptPathExtractor(),
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
     )
 
     code_embedder()

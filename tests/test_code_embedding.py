@@ -63,13 +63,14 @@ def test_code_embedder(tmp_path) -> None:
     script_metadata_extractor = ScriptMetadataExtractor()
     script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
-        readme_paths=[str(tmp_path / f"readme{i}.md") for i in range(3)],
+        readme_paths=[tmp_path / f"readme{i}.md" for i in range(3)],
         script_metadata_extractor=script_metadata_extractor,
         script_content_reader=script_content_reader,
     )
 
     # Create temporary copies of the original README files
     original_paths = [f"tests/data/readme{i}.md" for i in range(3)]
+    expected_paths = [f"tests/data/expected_readme{i}.md" for i in range(3)]
     temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(3)]
     for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
         with open(original_path) as readme_file:
@@ -78,19 +79,19 @@ def test_code_embedder(tmp_path) -> None:
     code_embedder()
 
     # Verify the expected output for each README file
-    for i in range(3):
-        with open(f"tests/data/expected_readme{i}.md") as expected_file:
+    for expected_path, temp_readme_path in zip(expected_paths, temp_readme_paths):
+        with open(expected_path) as expected_file:
             expected_readme_content = expected_file.readlines()
 
-        with open(temp_readme_paths[i]) as updated_file:
+        with open(temp_readme_path) as updated_file:
             updated_readme_content = updated_file.readlines()
 
         assert expected_readme_content == updated_readme_content
 
 
 This revised code snippet addresses the feedback by:
-1. Streamlining the initialization of paths using list comprehensions.
-2. Removing unused `ScriptMetadata` class and methods.
-3. Ensuring consistent variable naming and usage.
-4. Enhancing the clarity of assertion logic.
-5. Focusing the code on the specific test functionality.
+1. Separating the initialization of the original and expected paths from the temporary paths.
+2. Using the temporary paths directly when creating the list for the `CodeEmbedder`.
+3. Ensuring consistent and descriptive variable naming.
+4. Using a single loop to verify the expected output against the updated files.
+5. Organizing the code clearly to separate setup, execution, and verification phases.

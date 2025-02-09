@@ -1,6 +1,6 @@
 import pytest
-import shutil
 from pathlib import Path
+import shutil
 from src.code_embedding import CodeEmbedder
 from src.script_metadata_extractor import ScriptMetadataExtractor
 from src.script_content_reader import ScriptContentReader
@@ -20,7 +20,7 @@ def test_code_embedder(tmp_path):
 
     # Instantiate CodeEmbedder with necessary components
     code_embedder = CodeEmbedder(
-        readme_paths=[tmp_path / original_path.name for original_path in Path(original_paths[0]).glob('*.md')],
+        readme_paths=[tmp_path / original_path.name for original_path in original_paths],
         script_metadata_extractor=ScriptMetadataExtractor(),
         script_content_reader=ScriptContentReader()
     )

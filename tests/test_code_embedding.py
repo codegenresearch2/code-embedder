@@ -1,4 +1,6 @@
 import pytest
+import shutil
+from pathlib import Path
 from src.code_embedding import CodeEmbedder
 from src.script_metadata_extractor import ScriptMetadataExtractor
 from src.script_content_reader import ScriptContentReader
@@ -9,14 +11,16 @@ def test_code_embedder(tmp_path):
     # List of expected README file paths
     expected_paths = ["tests/data/expected_readme0.md", "tests/data/expected_readme1.md", "tests/data/expected_readme2.md"]
 
-    # Ensure all original files exist
+    # Create temporary copies of the original README files
     for original_path in original_paths:
-        if not tmp_path.joinpath(original_path).exists():
+        original_file_path = Path(original_path)
+        if not original_file_path.exists():
             raise FileNotFoundError(f"The file {original_path} does not exist.")
+        shutil.copy(original_file_path, tmp_path / original_file_path.name)
 
     # Instantiate CodeEmbedder with necessary components
     code_embedder = CodeEmbedder(
-        readme_paths=[str(tmp_path / original_path) for original_path in original_paths],
+        readme_paths=[tmp_path / original_path.name for original_path in Path(original_paths[0]).glob('*.md')],
         script_metadata_extractor=ScriptMetadataExtractor(),
         script_content_reader=ScriptContentReader()
     )
@@ -25,7 +29,7 @@ def test_code_embedder(tmp_path):
     code_embedder()
 
     # Compare the updated readme content with the expected content
-    for original_path, expected_path in zip(original_paths, expected_paths):
-        updated_readme_content = tmp_path.joinpath(original_path).read_text().splitlines()
-        expected_readme_content = open(expected_path).read().splitlines()
+    for expected_path in expected_paths:
+        expected_readme_content = open(expected_path).readlines()
+        updated_readme_content = (tmp_path / Path(expected_path).name).read_text().splitlines()
         assert updated_readme_content == expected_readme_content

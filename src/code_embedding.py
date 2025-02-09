@@ -14,7 +14,6 @@ class ScriptMetadata:
 class ScriptPathExtractor:
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
-        self._code_block_end = ""
         self._path_separator = ":"
 
     def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
@@ -24,8 +23,9 @@ class ScriptPathExtractor:
         for row, line in enumerate(readme_content):
             if self._is_code_block_start(line):
                 current_block = self._start_new_block(line, row)
-            elif self._is_code_block_end(line) and current_block:
-                scripts.append(self._finish_current_block(current_block, row))
+            elif current_block:
+                current_block["end"] = row
+                scripts.append(self._finish_current_block(current_block))
                 current_block = None
 
         return scripts
@@ -33,16 +33,13 @@ class ScriptPathExtractor:
     def _is_code_block_start(self, line: str) -> bool:
         return re.search(self._code_block_start_regex, line) is not None
 
-    def _is_code_block_end(self, line: str) -> bool:
-        return line.strip() == self._code_block_end
-
     def _start_new_block(self, line: str, row: int) -> dict:
         path = line.split(self._path_separator)[-1].strip()
         return {"start": row, "path": path}
 
-    def _finish_current_block(self, block: dict, end_row: int) -> ScriptMetadata:
+    def _finish_current_block(self, block: dict) -> ScriptMetadata:
         return ScriptMetadata(
-            readme_start=block["start"], readme_end=end_row, path=block["path"]
+            readme_start=block["start"], readme_end=block["end"], path=block["path"]
         )
 
 

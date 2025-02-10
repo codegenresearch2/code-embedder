@@ -89,7 +89,7 @@ class CodeEmbedder:
             logger.info(f"Empty README in path {readme_path}. Skipping.")
             return
 
-        scripts = self._extract_scripts(readme_content)
+        scripts = self._extract_scripts(readme_content, readme_path)
         if not scripts:
             return
 
@@ -108,9 +108,17 @@ class CodeEmbedder:
         with open(readme_path) as readme_file:
             return readme_file.readlines()
 
-    def _extract_scripts(self, readme_content: list[str]) -> list[ScriptMetadata]:
+    def _extract_scripts(self, readme_content: list[str], readme_path: str) -> list[ScriptMetadata]:
         extractor = self._script_metadata_extractor
-        return extractor.extract(readme_content)
+        scripts = extractor.extract(readme_content)
+        if not scripts:
+            logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
+        else:
+            logger.info(
+                f"""Found script paths in README in path {readme_path}:
+                {set(script.path for script in scripts)}"""
+            )
+        return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         for script in scripts:

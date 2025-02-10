@@ -47,7 +47,7 @@ class ScriptPathExtractor:
 
 
 class IScriptMetadataExtractor:
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata] | None:
         pass
 
 
@@ -57,7 +57,7 @@ class IScriptContentReader:
 
 
 class ScriptMetadataExtractor(IScriptMetadataExtractor):
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata] | None:
         extractor = ScriptPathExtractor()
         return extractor.extract(readme_content)
 
@@ -72,12 +72,10 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_path_extractor: ScriptPathExtractor,
         script_metadata_extractor: IScriptMetadataExtractor,
         script_content_reader: IScriptContentReader,
     ) -> None:
         self._readme_paths = readme_paths
-        self._script_path_extractor = script_path_extractor
         self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
 
@@ -92,7 +90,7 @@ class CodeEmbedder:
             return
 
         scripts = self._extract_scripts(readme_content=readme_content, readme_path=readme_path)
-        if not scripts:
+        if scripts is None:
             return
 
         scripts.sort(key=lambda script: script.readme_start)
@@ -114,11 +112,12 @@ class CodeEmbedder:
 
     def _extract_scripts(
         self, readme_content: list[str], readme_path: str
-    ) -> list[ScriptMetadata]:
-        scripts = self._script_metadata_extractor.extract(readme_content=readme_content)
+    ) -> list[ScriptMetadata] | None:
+        extractor = self._script_metadata_extractor
+        scripts = extractor.extract(readme_content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
-            return []
+            return None
         logger.info(
             f"""Found script paths in README in path {readme_path}:
             {set(script.path for script in scripts)}"""
@@ -149,7 +148,7 @@ class CodeEmbedder:
 
         for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [script.content + "\n"]
+            updated_readme.append(script.content + "\n")
 
             readme_content_cursor = script.readme_end
 

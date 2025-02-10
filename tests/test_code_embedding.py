@@ -101,7 +101,7 @@ class CodeEmbedder:
         for readme_path in self.readme_paths:
             with open(readme_path) as readme_file:
                 readme_content = readme_file.readlines()
-            scripts = ScriptMetadata.from_readme_content(readme_content)
+            scripts = self.script_metadata_extractor.extract(readme_content=readme_content)
             updated_scripts = self._read_script_content(scripts)
             with open(readme_path, 'w') as readme_file:
                 for script in updated_scripts:
@@ -113,8 +113,8 @@ def test_code_embedder_read_script_content() -> None:
     script_metadata_extractor = ScriptMetadataExtractor()
     code_embedder = CodeEmbedder(
         readme_paths=["tests/data/readme.md"],
-        script_content_reader=script_content_reader,
         script_metadata_extractor=script_metadata_extractor,
+        script_content_reader=script_content_reader,
     )
 
     scripts = [
@@ -152,8 +152,8 @@ def test_code_embedder(tmp_path) -> None:
     script_metadata_extractor = ScriptMetadataExtractor()
     code_embedder = CodeEmbedder(
         readme_paths=[str(temp_readme_path) for temp_readme_path in temp_readme_paths],
-        script_content_reader=script_content_reader,
         script_metadata_extractor=script_metadata_extractor,
+        script_content_reader=script_content_reader,
     )
 
     code_embedder()

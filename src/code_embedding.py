@@ -1,25 +1,12 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import List
 from loguru import logger
 import re
+from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
-@dataclass
-class ScriptMetadata:
-    readme_start: int
-    readme_end: int
-    path: str
-    content: str
-
-class ScriptMetadataExtractorInterface(ABC):
-    @abstractmethod
-    def extract(self, readme_content: List[str]) -> List[ScriptMetadata]:
-        pass
-
-class ScriptContentReaderInterface(ABC):
-    @abstractmethod
-    def read(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
-        pass
+from src.script_metadata import ScriptMetadata
+from src.script_metadata_extractor import ScriptMetadataExtractorInterface
+from src.script_content_reader import ScriptContentReaderInterface
 
 class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
     def extract(self, readme_content: List[str]) -> List[ScriptMetadata]:

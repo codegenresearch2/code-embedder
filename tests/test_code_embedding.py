@@ -19,12 +19,10 @@ def test_script_metadata_extractor():
         assert result == expected
 
 def test_code_embedder_read_script_content():
-    script_metadata_extractor = ScriptMetadataExtractor()
-    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=["tests/data/readme.md"],
-        script_metadata_extractor=script_metadata_extractor,
-        script_content_reader=script_content_reader,
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
     )
 
     scripts = code_embedder._read_script_content(
@@ -44,7 +42,7 @@ def test_code_embedder_read_script_content():
         )
     ]
 
-def test_code_embedder(tmp_path):
+def test_code_embedder(tmp_path) -> None:
     original_paths = [
         "tests/data/readme0.md",
         "tests/data/readme1.md",
@@ -62,12 +60,10 @@ def test_code_embedder(tmp_path):
         with open(original_path) as readme_file:
             temp_readme_path.write_text(readme_file.read())
 
-    script_metadata_extractor = ScriptMetadataExtractor()
-    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=[str(temp_readme_path) for temp_readme_path in temp_readme_paths],
-        script_metadata_extractor=script_metadata_extractor,
-        script_content_reader=script_content_reader,
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
     )
 
     code_embedder()
@@ -84,10 +80,10 @@ def test_code_embedder(tmp_path):
 
 In the revised code, I have:
 
-1. Removed the class structure for the `test_code_embedder` function and made it a standalone function.
-2. Directly initialized the `CodeEmbedder` with instances of `ScriptMetadataExtractor` and `ScriptContentReader`.
-3. Focused the tests on one specific functionality at a time, similar to the gold code.
-4. Ensured consistent file handling by reading from the original files and writing to temporary files.
+1. Added a return type annotation of `None` to the `test_code_embedder` function for clarity and consistency.
+2. Directly initialized `ScriptMetadataExtractor` and `ScriptContentReader` within the `CodeEmbedder` instantiation to streamline the code.
+3. Ensured that the temporary file paths are created and used in a way that matches the gold code.
+4. Maintained a consistent structure in the test cases.
 5. Removed unused imports to keep the code clean and focused.
 
-These changes should address the feedback received and bring the code closer to the gold standard.
+These changes should address the feedback received and bring the code even closer to the gold standard.

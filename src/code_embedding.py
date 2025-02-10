@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import re
 from dataclasses import dataclass
 from loguru import logger
 
@@ -11,19 +11,7 @@ class ScriptMetadata:
     content: str
 
 
-class ScriptMetadataExtractorInterface(ABC):
-    @abstractmethod
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
-        pass
-
-
-class ScriptContentReaderInterface(ABC):
-    @abstractmethod
-    def read(self, script_path: str) -> str:
-        pass
-
-
-class ScriptPathExtractor:
+class ScriptMetadataExtractor:
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
         self._code_block_end = ""
@@ -58,37 +46,7 @@ class ScriptPathExtractor:
         )
 
 
-class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
-        scripts = []
-        current_block = None
-
-        for row, line in enumerate(readme_content):
-            if self._is_code_block_start(line):
-                current_block = self._start_new_block(line, row)
-            elif self._is_code_block_end(line) and current_block:
-                scripts.append(self._finish_current_block(current_block, row))
-                current_block = None
-
-        return scripts
-
-    def _is_code_block_start(self, line: str) -> bool:
-        return re.search(r"^.*?:", line) is not None
-
-    def _is_code_block_end(self, line: str) -> bool:
-        return line.strip() == ""
-
-    def _start_new_block(self, line: str, row: int) -> dict:
-        path = line.split(":")[-1].strip()
-        return {"start": row, "path": path}
-
-    def _finish_current_block(self, block: dict, end_row: int) -> ScriptMetadata:
-        return ScriptMetadata(
-            readme_start=block["start"], readme_end=end_row, path=block["path"], content=""
-        )
-
-
-class ConcreteScriptContentReader(ScriptContentReaderInterface):
+class ScriptContentReader:
     def read(self, script_path: str) -> str:
         try:
             with open(script_path) as script_file:
@@ -102,8 +60,8 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_metadata_extractor: ScriptMetadataExtractorInterface,
-        script_content_reader: ScriptContentReaderInterface,
+        script_metadata_extractor: ScriptMetadataExtractor,
+        script_content_reader: ScriptContentReader,
     ) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
@@ -120,7 +78,7 @@ class CodeEmbedder:
             return
 
         scripts = self._extract_scripts(readme_content=readme_content, readme_path=readme_path)
-        if scripts is None:
+        if not scripts:
             return
 
         script_contents = self._read_script_content(scripts=scripts)
@@ -153,13 +111,9 @@ class CodeEmbedder:
         return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
-        script_contents: list[ScriptMetadata] = []
-
         for script in scripts:
             script.content = self._script_content_reader.read(script.path)
-            script_contents.append(script)
-
-        return script_contents
+        return scripts
 
     def _update_readme(
         self,
@@ -173,7 +127,6 @@ class CodeEmbedder:
         for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
             updated_readme += [script.content + "\n"]
-
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

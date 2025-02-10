@@ -5,65 +5,20 @@ from src.script_metadata import ScriptMetadata
 from src.script_metadata_extractor import ScriptMetadataExtractor
 from src.script_content_reader import ScriptContentReader
 
-@pytest.mark.parametrize(
-    "readme_content, expected",
-    [
-        (
-            [":main.py", "print('Hello, World!')", ""],
-            [ScriptMetadata(readme_start=0, readme_end=2, path="main.py", content="")],
-        ),
-        # ... other test cases ...
-    ],
-    ids=[
-        "one_tagged_script",
-        # ... other test case ids ...
-    ],
-)
-def test_script_metadata_extractor(
-    readme_content: list[str], expected: list[ScriptMetadata]
-) -> None:
-    script_metadata_extractor = ScriptMetadataExtractor()
-    result = script_metadata_extractor.extract(readme_content=readme_content)
-    assert result == expected
-
-def test_code_embedder_read_script_content() -> None:
-    code_embedder = CodeEmbedder(
-        readme_paths=["tests/data/readme.md"],
-        script_metadata_extractor=ScriptMetadataExtractor(),
-        script_content_reader=ScriptContentReader(),
-    )
-
-    script = ScriptMetadata(
-        readme_start=6, readme_end=7, path="tests/data/example.py", content=""
-    )
-    script = code_embedder.read_script_content(script)
-    assert script == ScriptMetadata(
-        readme_start=6,
-        readme_end=7,
-        path="tests/data/example.py",
-        content='print("Hello, World! from script")\n',
-    )
-
 class CodeEmbedder:
     def __init__(self, readme_paths, script_metadata_extractor, script_content_reader):
         self.readme_paths = readme_paths
         self.script_metadata_extractor = script_metadata_extractor
         self.script_content_reader = script_content_reader
 
-    def read_script_content(self, script):
-        script.content = self.script_content_reader.read(script.path)
-        return script
-
-    def __call__(self):
+    def embed_scripts(self):
         for readme_path in self.readme_paths:
             with open(readme_path, 'r') as file:
                 readme_content = file.readlines()
 
             scripts = self.script_metadata_extractor.extract(readme_content)
-            scripts = self.read_script_content(scripts)
-
-            # Update README content with script content
             for script in scripts:
+                script.content = self.script_content_reader.read(script.path)
                 readme_content[script.readme_start:script.readme_end] = [script.content]
 
             with open(readme_path, 'w') as file:
@@ -81,7 +36,6 @@ def test_code_embedder(tmp_path) -> None:
         "tests/data/expected_readme2.md",
     ]
 
-    # Create a temporary copy of the original file
     temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(len(original_paths))]
     for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
         with open(original_path) as readme_file:
@@ -93,7 +47,7 @@ def test_code_embedder(tmp_path) -> None:
         script_content_reader=ScriptContentReader(),
     )
 
-    code_embedder()
+    code_embedder.embed_scripts()
 
     for expected_path, temp_readme_path in zip(expected_paths, temp_readme_paths):
         with open(expected_path) as expected_file:

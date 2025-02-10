@@ -33,21 +33,16 @@ def test_code_embedder_read_script_content() -> None:
         script_content_reader=ScriptContentReader(),
     )
 
-    scripts = code_embedder.read_script_content(
-        scripts=[
-            ScriptMetadata(
-                readme_start=6, readme_end=7, path="tests/data/example.py", content=""
-            )
-        ]
+    script = ScriptMetadata(
+        readme_start=6, readme_end=7, path="tests/data/example.py", content=""
     )
-    assert scripts == [
-        ScriptMetadata(
-            readme_start=6,
-            readme_end=7,
-            path="tests/data/example.py",
-            content='print("Hello, World! from script")\n',
-        )
-    ]
+    script = code_embedder.read_script_content(script)
+    assert script == ScriptMetadata(
+        readme_start=6,
+        readme_end=7,
+        path="tests/data/example.py",
+        content='print("Hello, World! from script")\n',
+    )
 
 class CodeEmbedder:
     def __init__(self, readme_paths, script_metadata_extractor, script_content_reader):
@@ -55,14 +50,24 @@ class CodeEmbedder:
         self.script_metadata_extractor = script_metadata_extractor
         self.script_content_reader = script_content_reader
 
-    def read_script_content(self, scripts):
-        for script in scripts:
-            script.content = self.script_content_reader.read(script)
-        return scripts
+    def read_script_content(self, script):
+        script.content = self.script_content_reader.read(script.path)
+        return script
 
     def __call__(self):
-        # Implement the logic for calling the CodeEmbedder instance
-        pass
+        for readme_path in self.readme_paths:
+            with open(readme_path, 'r') as file:
+                readme_content = file.readlines()
+
+            scripts = self.script_metadata_extractor.extract(readme_content)
+            scripts = self.read_script_content(scripts)
+
+            # Update README content with script content
+            for script in scripts:
+                readme_content[script.readme_start:script.readme_end] = [script.content]
+
+            with open(readme_path, 'w') as file:
+                file.writelines(readme_content)
 
 def test_code_embedder(tmp_path) -> None:
     original_paths = [

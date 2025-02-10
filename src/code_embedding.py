@@ -1,5 +1,6 @@
-import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import re
 from loguru import logger
 
 @dataclass
@@ -9,7 +10,17 @@ class ScriptMetadata:
     path: str
     content: str = ""
 
-class ScriptPathExtractor:
+class ScriptMetadataExtractorInterface(ABC):
+    @abstractmethod
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+        pass
+
+class ScriptContentReaderInterface(ABC):
+    @abstractmethod
+    def read(self, script: ScriptMetadata) -> ScriptMetadata:
+        pass
+
+class ScriptPathExtractor(ScriptMetadataExtractorInterface):
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
         self._code_block_end = ""
@@ -43,7 +54,7 @@ class ScriptPathExtractor:
             readme_start=block["start"], readme_end=end_row, path=block["path"]
         )
 
-class ScriptContentReader:
+class ScriptContentReader(ScriptContentReaderInterface):
     def read(self, script: ScriptMetadata) -> ScriptMetadata:
         try:
             with open(script.path) as script_file:
@@ -54,6 +65,7 @@ class ScriptContentReader:
 
 class ReadmeUpdater:
     def update(self, script_contents: list[ScriptMetadata], readme_content: list[str], readme_path: str) -> None:
+        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 
@@ -71,12 +83,12 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_path_extractor: ScriptPathExtractor,
-        script_content_reader: ScriptContentReader,
+        script_metadata_extractor: ScriptMetadataExtractorInterface,
+        script_content_reader: ScriptContentReaderInterface,
         readme_updater: ReadmeUpdater,
     ) -> None:
         self._readme_paths = readme_paths
-        self._script_path_extractor = script_path_extractor
+        self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
         self._readme_updater = readme_updater
 
@@ -112,7 +124,7 @@ class CodeEmbedder:
     def _extract_scripts(
         self, readme_content: list[str], readme_path: str
     ) -> list[ScriptMetadata] | None:
-        scripts = self._script_path_extractor.extract(readme_content=readme_content)
+        scripts = self._script_metadata_extractor.extract(readme_content=readme_content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
@@ -132,6 +144,3 @@ class CodeEmbedder:
         readme_path: str,
     ) -> None:
         self._readme_updater.update(script_contents, readme_content, readme_path)
-
-
-In this rewrite, I have added three new components: `ScriptContentReader`, `ReadmeUpdater`, and modified the `CodeEmbedder` to use these new components. This modularization improves code organization and enhances functionality by adding new components. The `ScriptContentReader` is responsible for reading the content of scripts, and the `ReadmeUpdater` is responsible for updating the README file. This simplifies tests by removing unnecessary dependencies, as the `CodeEmbedder` no longer needs to handle file I/O directly.

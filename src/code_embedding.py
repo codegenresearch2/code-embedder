@@ -11,18 +11,18 @@ class ScriptMetadata:
     path: str
     content: str
 
-class ScriptMetadataExtractor(ABC):
+class ScriptMetadataExtractorInterface(ABC):
     @abstractmethod
-    def extract(self, readme_content: List[str], content: str) -> List[ScriptMetadata]:
+    def extract(self, readme_content: List[str]) -> List[ScriptMetadata]:
         pass
 
-class ScriptContentReader(ABC):
+class ScriptContentReaderInterface(ABC):
     @abstractmethod
     def read(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
         pass
 
-class ConcreteScriptMetadataExtractor(ScriptMetadataExtractor):
-    def extract(self, readme_content: List[str], content: str) -> List[ScriptMetadata]:
+class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
+    def extract(self, readme_content: List[str]) -> List[ScriptMetadata]:
         scripts = []
         current_block = None
         code_block_start_regex = r"^.*?:"
@@ -38,13 +38,13 @@ class ConcreteScriptMetadataExtractor(ScriptMetadataExtractor):
                     readme_start=current_block["start"],
                     readme_end=row,
                     path=current_block["path"],
-                    content=content
+                    content=""
                 ))
                 current_block = None
 
         return scripts
 
-class ConcreteScriptContentReader(ScriptContentReader):
+class ConcreteScriptContentReader(ScriptContentReaderInterface):
     def read(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
         script_contents = []
 
@@ -61,7 +61,7 @@ class ConcreteScriptContentReader(ScriptContentReader):
         return script_contents
 
 class CodeEmbedder:
-    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractor, script_content_reader: ScriptContentReader, content: str) -> None:
+    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractorInterface, script_content_reader: ScriptContentReaderInterface, content: str) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
@@ -93,7 +93,7 @@ class CodeEmbedder:
             return readme_file.readlines()
 
     def _extract_scripts(self, readme_content: List[str], readme_path: str) -> List[ScriptMetadata] | None:
-        scripts = self._script_metadata_extractor.extract(readme_content=readme_content, content=self._content)
+        scripts = self._script_metadata_extractor.extract(readme_content=readme_content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
@@ -104,13 +104,12 @@ class CodeEmbedder:
         return self._script_content_reader.read(scripts=scripts)
 
     def _update_readme(self, script_contents: List[ScriptMetadata], readme_content: List[str], readme_path: str) -> None:
-        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 
-        for script in script_contents:
+        for script in sorted(script_contents, key=lambda x: x.readme_start):
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += script.content + "\n"
+            updated_readme += [self._content + "\n"]
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

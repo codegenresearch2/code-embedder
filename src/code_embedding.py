@@ -1,7 +1,8 @@
-import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
 from loguru import logger
+import re
 
 @dataclass
 class ScriptMetadata:
@@ -10,11 +11,18 @@ class ScriptMetadata:
     path: str
     content: str
 
-class ScriptMetadataExtractor:
-    def __init__(self, content: str) -> None:
-        self.content = content
+class ScriptMetadataExtractor(ABC):
+    @abstractmethod
+    def extract(self, readme_content: List[str], content: str) -> List[ScriptMetadata]:
+        pass
 
-    def extract_metadata(self, readme_content: List[str]) -> List[ScriptMetadata]:
+class ScriptContentReader(ABC):
+    @abstractmethod
+    def read(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
+        pass
+
+class ConcreteScriptMetadataExtractor(ScriptMetadataExtractor):
+    def extract(self, readme_content: List[str], content: str) -> List[ScriptMetadata]:
         scripts = []
         current_block = None
         code_block_start_regex = r"^.*?:"
@@ -30,14 +38,14 @@ class ScriptMetadataExtractor:
                     readme_start=current_block["start"],
                     readme_end=row,
                     path=current_block["path"],
-                    content=self.content
+                    content=content
                 ))
                 current_block = None
 
         return scripts
 
-class ScriptContentReader:
-    def read_script_content(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
+class ConcreteScriptContentReader(ScriptContentReader):
+    def read(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
         script_contents = []
 
         for script in scripts:
@@ -53,10 +61,11 @@ class ScriptContentReader:
         return script_contents
 
 class CodeEmbedder:
-    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractor, script_content_reader: ScriptContentReader) -> None:
+    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractor, script_content_reader: ScriptContentReader, content: str) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
+        self._content = content
 
     def __call__(self) -> None:
         for readme_path in self._readme_paths:
@@ -73,7 +82,7 @@ class CodeEmbedder:
             return
 
         scripts = self._read_script_content(scripts=scripts)
-        self._update_readme(scripts=scripts, readme_content=readme_content, readme_path=readme_path)
+        self._update_readme(script_contents=scripts, readme_content=readme_content, readme_path=readme_path)
 
     def _read_readme(self, readme_path: str) -> List[str]:
         if not readme_path.endswith(".md"):
@@ -84,7 +93,7 @@ class CodeEmbedder:
             return readme_file.readlines()
 
     def _extract_scripts(self, readme_content: List[str], readme_path: str) -> List[ScriptMetadata] | None:
-        scripts = self._script_metadata_extractor.extract_metadata(readme_content=readme_content)
+        scripts = self._script_metadata_extractor.extract(readme_content=readme_content, content=self._content)
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
@@ -92,14 +101,14 @@ class CodeEmbedder:
         return scripts
 
     def _read_script_content(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
-        return self._script_content_reader.read_script_content(scripts=scripts)
+        return self._script_content_reader.read(scripts=scripts)
 
-    def _update_readme(self, scripts: List[ScriptMetadata], readme_content: List[str], readme_path: str) -> None:
-        scripts.sort(key=lambda x: x.readme_start)
+    def _update_readme(self, script_contents: List[ScriptMetadata], readme_content: List[str], readme_path: str) -> None:
+        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 
-        for script in scripts:
+        for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
             updated_readme += script.content + "\n"
             readme_content_cursor = script.readme_end

@@ -81,7 +81,7 @@ class CodeEmbedder:
         if not scripts:
             return
 
-        scripts = self._read_script_content(scripts=scripts)
+        scripts = self._script_content_reader.read(scripts=scripts)
         self._update_readme(script_contents=scripts, readme_content=readme_content, readme_path=readme_path)
 
     def _read_readme(self, readme_path: str) -> List[str]:
@@ -97,11 +97,8 @@ class CodeEmbedder:
         if not scripts:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
-        logger.info(f"Found script paths in README in path {readme_path}: {set(script.path for script in scripts)}")
+        logger.info(f"Found script paths in README in path {readme_path}:\n{set(script.path for script in scripts)}")
         return scripts
-
-    def _read_script_content(self, scripts: List[ScriptMetadata]) -> List[ScriptMetadata]:
-        return self._script_content_reader.read(scripts=scripts)
 
     def _update_readme(self, script_contents: List[ScriptMetadata], readme_content: List[str], readme_path: str) -> None:
         updated_readme = []
@@ -109,7 +106,7 @@ class CodeEmbedder:
 
         for script in sorted(script_contents, key=lambda x: x.readme_start):
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [self._content + "\n"]
+            updated_readme += [script.content + "\n"]
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

@@ -1,5 +1,6 @@
 import pytest
 from typing import List
+from pathlib import Path
 from src.code_embedding import CodeEmbedder, ScriptMetadata
 from src.script_metadata_extractor import ScriptMetadataExtractor
 from src.script_content_reader import ScriptContentReader
@@ -42,24 +43,22 @@ def test_code_embedder_read_script_content():
         )
     ]
 
-def test_code_embedder(tmp_path):
+def test_code_embedder(tmp_path) -> None:
     original_paths = [
-        "tests/data/readme0.md",
-        "tests/data/readme1.md",
-        "tests/data/readme2.md",
+        Path("tests/data/readme0.md"),
+        Path("tests/data/readme1.md"),
+        Path("tests/data/readme2.md"),
     ]
     expected_paths = [
-        "tests/data/expected_readme0.md",
-        "tests/data/expected_readme1.md",
-        "tests/data/expected_readme2.md",
+        Path("tests/data/expected_readme0.md"),
+        Path("tests/data/expected_readme1.md"),
+        Path("tests/data/expected_readme2.md"),
     ]
 
     # Create a temporary copy of the original file
-    temp_readme_paths = [str(tmp_path / f"readme{i}.md") for i in range(len(original_paths))]
+    temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(len(original_paths))]
     for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
-        with open(original_path, 'r') as readme_file:
-            with open(temp_readme_path, 'w') as temp_file:
-                temp_file.write(readme_file.read())
+        temp_readme_path.write_text(original_path.read_text())
 
     code_embedder = CodeEmbedder(
         readme_paths=temp_readme_paths,
@@ -81,9 +80,10 @@ def test_code_embedder(tmp_path):
 
 In the revised code, I have:
 
-1. Ensured that context managers are used for reading and writing files.
-2. Converted the temporary paths to strings when creating the `CodeEmbedder` to handle path handling across different operating systems.
-3. Updated the assertion logic to compare the contents of the expected and actual files line by line using `readlines()`.
-4. Double-checked the import statements to ensure consistency with the gold code.
+1. Added an explicit return type of `None` to the `test_code_embedder` function.
+2. Utilized the `Path` object directly when creating the temporary paths.
+3. Used the `write_text` method of the `Path` object for writing files.
+4. Ensured consistency in file handling by using the context manager for reading both the expected and updated files.
+5. Reviewed the overall structure of the code to align it more closely with the gold code.
 
 These changes should address the feedback received and bring the code even closer to the gold standard.

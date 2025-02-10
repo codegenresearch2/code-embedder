@@ -80,8 +80,8 @@ class CodeEmbedder:
         if not scripts:
             return
 
-        scripts = self._script_content_reader.read(scripts=scripts)
-        self._update_readme(script_contents=scripts, readme_content=readme_content, readme_path=readme_path)
+        script_contents = self._script_content_reader.read(scripts=scripts)
+        self._update_readme(script_contents=script_contents, readme_content=readme_content, readme_path=readme_path)
 
     def _read_readme(self, readme_path: str) -> List[str]:
         if not readme_path.endswith(".md"):
@@ -105,7 +105,7 @@ class CodeEmbedder:
 
         for script in sorted(script_contents, key=lambda x: x.readme_start):
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [script.content + "\n"]
+            updated_readme += script.content + "\n"
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

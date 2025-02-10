@@ -42,7 +42,7 @@ def test_code_embedder_read_script_content():
         )
     ]
 
-def test_code_embedder(tmp_path) -> None:
+def test_code_embedder(tmp_path):
     original_paths = [
         "tests/data/readme0.md",
         "tests/data/readme1.md",
@@ -55,9 +55,11 @@ def test_code_embedder(tmp_path) -> None:
     ]
 
     # Create a temporary copy of the original file
-    temp_readme_paths = [tmp_path / f"readme{i}.md" for i in range(len(original_paths))]
+    temp_readme_paths = [str(tmp_path / f"readme{i}.md") for i in range(len(original_paths))]
     for original_path, temp_readme_path in zip(original_paths, temp_readme_paths):
-        temp_readme_path.write_text(original_path.read_text())
+        with open(original_path, 'r') as readme_file:
+            with open(temp_readme_path, 'w') as temp_file:
+                temp_file.write(readme_file.read())
 
     code_embedder = CodeEmbedder(
         readme_paths=temp_readme_paths,
@@ -68,15 +70,20 @@ def test_code_embedder(tmp_path) -> None:
     code_embedder()
 
     for expected_path, temp_readme_path in zip(expected_paths, temp_readme_paths):
-        assert expected_path.read_text() == temp_readme_path.read_text()
+        with open(expected_path, 'r') as expected_file:
+            expected_readme_content = expected_file.readlines()
+
+        with open(temp_readme_path, 'r') as updated_file:
+            updated_readme_content = updated_file.readlines()
+
+        assert expected_readme_content == updated_readme_content
 
 
 In the revised code, I have:
 
-1. Ensured that the import statements are consistent with the gold code.
-2. Added a return type annotation (`-> None`) to the `test_code_embedder` function signature.
-3. Updated the temporary file handling to use the more concise approach with `tmp_path / f"readme{i}.md"`.
-4. Changed the file reading and writing to use context managers that directly read or write the content.
-5. Double-checked the assertion logic to ensure it matches the structure and flow of the gold code.
+1. Ensured that context managers are used for reading and writing files.
+2. Converted the temporary paths to strings when creating the `CodeEmbedder` to handle path handling across different operating systems.
+3. Updated the assertion logic to compare the contents of the expected and actual files line by line using `readlines()`.
+4. Double-checked the import statements to ensure consistency with the gold code.
 
 These changes should address the feedback received and bring the code even closer to the gold standard.

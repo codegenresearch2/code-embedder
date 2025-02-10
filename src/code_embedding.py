@@ -1,6 +1,6 @@
-import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
+import re
 from loguru import logger
 
 @dataclass
@@ -10,7 +10,17 @@ class ScriptMetadata:
     path: str
     content: str = ""
 
-class ScriptMetadataExtractor:
+class ScriptMetadataExtractor(ABC):
+    @abstractmethod
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+        pass
+
+class ScriptContentReader(ABC):
+    @abstractmethod
+    def read(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
+        pass
+
+class MarkdownScriptMetadataExtractor(ScriptMetadataExtractor):
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
         self._code_block_end = ""
@@ -44,8 +54,8 @@ class ScriptMetadataExtractor:
             readme_start=block["start"], readme_end=end_row, path=block["path"]
         )
 
-class ScriptContentReader:
-    def read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
+class FileScriptContentReader(ScriptContentReader):
+    def read(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         script_contents: list[ScriptMetadata] = []
 
         for script in scripts:
@@ -87,7 +97,7 @@ class CodeEmbedder:
 
         scripts = self._read_script_content(scripts=scripts)
         self._update_readme(
-            scripts=scripts,
+            script_contents=scripts,
             readme_content=readme_content,
             readme_path=readme_path,
         )
@@ -114,18 +124,19 @@ class CodeEmbedder:
         return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
-        return self._script_content_reader.read_script_content(scripts=scripts)
+        return self._script_content_reader.read(scripts=scripts)
 
     def _update_readme(
         self,
-        scripts: list[ScriptMetadata],
+        script_contents: list[ScriptMetadata],
         readme_content: list[str],
         readme_path: str,
     ) -> None:
+        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 
-        for script in scripts:
+        for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
             updated_readme += script.content + "\n"
 

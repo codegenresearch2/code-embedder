@@ -61,6 +61,7 @@ def test_script_path_extractor(
     code_embedder = CodeEmbedder(
         script_metadata_extractor=script_metadata_extractor,
         script_content_reader=script_content_reader,
+        readme_paths=["dummy_path"],  # Adding a dummy path to satisfy the required argument
     )
     result = code_embedder.extract_script_metadata(readme_content=readme_content)
     assert result == expected
@@ -72,6 +73,7 @@ def test_code_embedder_read_script_content() -> None:
     code_embedder = CodeEmbedder(
         script_metadata_extractor=script_metadata_extractor,
         script_content_reader=script_content_reader,
+        readme_paths=["dummy_path"],  # Adding a dummy path to satisfy the required argument
     )
 
     scripts = code_embedder._read_script_content(

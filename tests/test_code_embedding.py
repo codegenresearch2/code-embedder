@@ -49,6 +49,17 @@ def test_code_embedder_read_script_content() -> None:
         )
     ]
 
+class CodeEmbedder:
+    def __init__(self, readme_paths, script_metadata_extractor, script_content_reader):
+        self.readme_paths = readme_paths
+        self.script_metadata_extractor = script_metadata_extractor
+        self.script_content_reader = script_content_reader
+
+    def read_script_content(self, scripts):
+        for script in scripts:
+            script.content = self.script_content_reader.read(script.path)
+        return scripts
+
 def test_code_embedder(tmp_path) -> None:
     original_paths = [
         "tests/data/readme0.md",

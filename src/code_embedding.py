@@ -10,17 +10,17 @@ class ScriptMetadata:
     path: str
     content: str = ""
 
-class ScriptMetadataExtractor(ABC):
+class ScriptMetadataExtractorInterface(ABC):
     @abstractmethod
     def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
         pass
 
-class ScriptContentReader(ABC):
+class ScriptContentReaderInterface(ABC):
     @abstractmethod
     def read(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         pass
 
-class MarkdownScriptMetadataExtractor(ScriptMetadataExtractor):
+class MarkdownScriptMetadataExtractor(ScriptMetadataExtractorInterface):
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
         self._code_block_end = ""
@@ -54,7 +54,7 @@ class MarkdownScriptMetadataExtractor(ScriptMetadataExtractor):
             readme_start=block["start"], readme_end=end_row, path=block["path"]
         )
 
-class FileScriptContentReader(ScriptContentReader):
+class FileScriptContentReader(ScriptContentReaderInterface):
     def read(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         script_contents: list[ScriptMetadata] = []
 
@@ -74,8 +74,8 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_metadata_extractor: ScriptMetadataExtractor,
-        script_content_reader: ScriptContentReader,
+        script_metadata_extractor: ScriptMetadataExtractorInterface,
+        script_content_reader: ScriptContentReaderInterface,
     ) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
@@ -95,9 +95,9 @@ class CodeEmbedder:
         if not scripts:
             return
 
-        scripts = self._read_script_content(scripts=scripts)
+        script_contents = self._read_script_content(scripts=scripts)
         self._update_readme(
-            script_contents=scripts,
+            script_contents=script_contents,
             readme_content=readme_content,
             readme_path=readme_path,
         )
@@ -118,8 +118,7 @@ class CodeEmbedder:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
         logger.info(
-            f"""Found script paths in README in path {readme_path}:
-            {set(script.path for script in scripts)}"""
+            f"Found script paths in README in path {readme_path}:\n{set(script.path for script in scripts)}"
         )
         return scripts
 

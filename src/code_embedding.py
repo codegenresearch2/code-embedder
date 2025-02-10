@@ -113,7 +113,7 @@ class CodeEmbedder:
             return None
         logger.info(
             f"Found script paths in README in path {readme_path}:\n"
-            f"{'\n'.join(script.path for script in scripts)}"
+            f"{'\n'.join(set(script.path for script in scripts))}"
         )
         return scripts
 

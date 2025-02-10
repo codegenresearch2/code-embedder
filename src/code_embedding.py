@@ -47,12 +47,12 @@ class ScriptPathExtractor:
 
 
 class IScriptMetadataExtractor:
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata] | None:
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
         pass
 
 
 class ScriptMetadataExtractor(IScriptMetadataExtractor):
-    def extract(self, readme_content: list[str]) -> list[ScriptMetadata] | None:
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
         extractor = ScriptPathExtractor()
         return extractor.extract(readme_content)
 
@@ -89,11 +89,11 @@ class CodeEmbedder:
             logger.info(f"Empty README in path {readme_path}. Skipping.")
             return
 
-        scripts = self._extract_scripts(readme_content=readme_content, readme_path=readme_path)
-        if scripts is None:
+        scripts = self._extract_scripts(readme_content)
+        if not scripts:
             return
 
-        script_contents = self._read_script_content(scripts=scripts)
+        script_contents = self._read_script_content(scripts)
         self._update_readme(
             script_contents=script_contents,
             readme_content=readme_content,
@@ -108,19 +108,9 @@ class CodeEmbedder:
         with open(readme_path) as readme_file:
             return readme_file.readlines()
 
-    def _extract_scripts(
-        self, readme_content: list[str], readme_path: str
-    ) -> list[ScriptMetadata] | None:
+    def _extract_scripts(self, readme_content: list[str]) -> list[ScriptMetadata]:
         extractor = self._script_metadata_extractor
-        scripts = extractor.extract(readme_content)
-        if not scripts:
-            logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
-            return None
-        logger.info(
-            f"""Found script paths in README in path {readme_path}:
-            {set(script.path for script in scripts)}"""
-        )
-        return scripts
+        return extractor.extract(readme_content)
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         for script in scripts:

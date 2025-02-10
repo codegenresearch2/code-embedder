@@ -3,7 +3,7 @@ from src.code_embedding import CodeEmbedder, ScriptMetadata
 from src.script_content_reader import ScriptContentReader
 from src.script_metadata_extractor import ScriptMetadataExtractor
 
-# Implement the `__eq__` method in the `ScriptMetadata` class
+# Implement the `from_readme_content` class method in the `ScriptMetadata` class
 class ScriptMetadata:
     def __init__(self, readme_start, readme_end, path, content=""):
         self.readme_start = readme_start
@@ -11,13 +11,21 @@ class ScriptMetadata:
         self.path = path
         self.content = content
 
-    def __eq__(self, other):
-        if isinstance(other, ScriptMetadata):
-            return (self.readme_start == other.readme_start and
-                    self.readme_end == other.readme_end and
-                    self.path == other.path and
-                    self.content == other.content)
-        return False
+    @classmethod
+    def from_readme_content(cls, readme_content):
+        metadata_list = []
+        i = 0
+        while i < len(readme_content):
+            if readme_content[i].startswith(":"):
+                start = i
+                while not readme_content[i].startswith(""):
+                    i += 1
+                end = i
+                path = readme_content[start].split(":")[1].strip()
+                content = "\n".join(readme_content[start+1:end])
+                metadata_list.append(cls(readme_start=start, readme_end=end, path=path, content=content))
+            i += 1
+        return metadata_list
 
 @pytest.mark.parametrize(
     "readme_content, expected",
@@ -71,8 +79,7 @@ class ScriptMetadata:
 def test_script_path_extractor(
     readme_content: list[str], expected: list[ScriptMetadata]
 ) -> None:
-    script_path_extractor = ScriptMetadata.from_readme_content(readme_content)
-    result = script_path_extractor
+    result = ScriptMetadata.from_readme_content(readme_content)
     assert result == expected
 
 # Define the `_read_script_content` method in the `CodeEmbedder` class

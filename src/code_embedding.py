@@ -9,7 +9,7 @@ class ScriptMetadata:
     readme_start: int
     readme_end: int
     path: str
-    content: str
+    content: str = ""
 
 
 class ScriptMetadataExtractorInterface(ABC):
@@ -55,10 +55,8 @@ class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
 
     def _finish_current_block(self, block: dict, end_row: int, readme_content: list[str]) -> ScriptMetadata:
         start_row = block["start"]
-        end_row = end_row
-        path = block["path"]
-        content = "\n".join(readme_content[start_row:end_row+1])
-        return ScriptMetadata(readme_start=start_row, readme_end=end_row, path=path, content=content)
+        content = "\n".join(readme_content[start_row:end_row])
+        return ScriptMetadata(readme_start=start_row, readme_end=end_row, path=block["path"], content=content)
 
 
 class ConcreteScriptContentReader(ScriptContentReaderInterface):
@@ -140,8 +138,8 @@ class CodeEmbedder:
         readme_content_cursor = 0
 
         for script in script_contents:
-            updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [script.content + "\n"]
+            updated_readme += readme_content[readme_content_cursor : script.readme_start]
+            updated_readme += [script.content]
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

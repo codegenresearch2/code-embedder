@@ -11,13 +11,13 @@ class ScriptMetadata:
     content: str
 
 
-class ScriptMetadataExtractor(ABC):
+class ScriptMetadataExtractorInterface(ABC):
     @abstractmethod
     def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
         pass
 
 
-class ScriptContentReader(ABC):
+class ScriptContentReaderInterface(ABC):
     @abstractmethod
     def read(self, script_path: str) -> str:
         pass
@@ -58,7 +58,7 @@ class ScriptPathExtractor:
         )
 
 
-class ConcreteScriptMetadataExtractor(ScriptMetadataExtractor):
+class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
     def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
         scripts = []
         current_block = None
@@ -88,7 +88,7 @@ class ConcreteScriptMetadataExtractor(ScriptMetadataExtractor):
         )
 
 
-class ConcreteScriptContentReader(ScriptContentReader):
+class ConcreteScriptContentReader(ScriptContentReaderInterface):
     def read(self, script_path: str) -> str:
         try:
             with open(script_path) as script_file:
@@ -102,8 +102,8 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_metadata_extractor: ScriptMetadataExtractor,
-        script_content_reader: ScriptContentReader,
+        script_metadata_extractor: ScriptMetadataExtractorInterface,
+        script_content_reader: ScriptContentReaderInterface,
     ) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
@@ -120,7 +120,7 @@ class CodeEmbedder:
             return
 
         scripts = self._extract_scripts(readme_content=readme_content, readme_path=readme_path)
-        if not scripts:
+        if scripts is None:
             return
 
         script_contents = self._read_script_content(scripts=scripts)
@@ -141,8 +141,16 @@ class CodeEmbedder:
 
     def _extract_scripts(
         self, readme_content: list[str], readme_path: str
-    ) -> list[ScriptMetadata]:
-        return self._script_metadata_extractor.extract(readme_content=readme_content)
+    ) -> list[ScriptMetadata] | None:
+        scripts = self._script_metadata_extractor.extract(readme_content=readme_content)
+        if not scripts:
+            logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
+            return None
+        logger.info(
+            f"""Found script paths in README in path {readme_path}:
+            {set(script.path for script in scripts)}"""
+        )
+        return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
         script_contents: list[ScriptMetadata] = []

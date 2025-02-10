@@ -1,14 +1,16 @@
 from src.script_metadata import ScriptMetadata
 
-
-class ScriptMetadataFactory:
-    def create(
-        self, start: int, end: int, path: str, extraction_part: str | None = None
-    ) -> ScriptMetadata:
-        return ScriptMetadata(
-            readme_start=start,
-            readme_end=end,
-            path=path,
-            extraction_part=extraction_part,
-            content="",
-        )
+def create_script_metadata(
+    readme_start: int,
+    readme_end: int,
+    path: str,
+    extraction_part: str | None = None,
+    content: str = ""
+) -> ScriptMetadata:
+    return ScriptMetadata(
+        readme_start=readme_start,
+        readme_end=readme_end,
+        path=path,
+        extraction_part=extraction_part,
+        content=content
+    )

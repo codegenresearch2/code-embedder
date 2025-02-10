@@ -132,17 +132,16 @@ class CodeEmbedder:
         readme_content: list[str],
         readme_path: str,
     ) -> None:
-        script_contents.sort(key=lambda x: x.readme_start)
         updated_readme = []
         readme_content_cursor = 0
 
-        for script in script_contents:
-            updated_readme.extend(readme_content[readme_content_cursor : script.readme_start + 1])
-            updated_readme.append(script.content + "\n")
+        for script in sorted(script_contents, key=lambda x: x.readme_start):
+            updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
+            updated_readme += [script.content + "\n"]
 
             readme_content_cursor = script.readme_end
 
-        updated_readme.extend(readme_content[readme_content_cursor:])
+        updated_readme += readme_content[readme_content_cursor:]
 
         with open(readme_path, "w") as readme_file:
             readme_file.writelines(updated_readme)

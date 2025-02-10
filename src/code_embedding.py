@@ -112,7 +112,8 @@ class CodeEmbedder:
             logger.info(f"No script paths found in README in path {readme_path}. Skipping.")
             return None
         logger.info(
-            f"Found script paths in README in path {readme_path}:\n{set(script.path for script in scripts)}"
+            f"Found script paths in README in path {readme_path}:\n"
+            f"{'\n'.join(script.path for script in scripts)}"
         )
         return scripts
 

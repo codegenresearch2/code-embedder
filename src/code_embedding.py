@@ -124,7 +124,7 @@ class CodeEmbedder:
 
         for script in script_contents:
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [script.content + "\n"]
+            updated_readme.append(script.content + "\n")
             readme_content_cursor = script.readme_end
 
         updated_readme += readme_content[readme_content_cursor:]

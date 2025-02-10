@@ -18,7 +18,7 @@ class ScriptMetadata:
         while i < len(readme_content):
             if readme_content[i].startswith(":"):
                 start = i
-                while i < len(readme_content) and not readme_content[i].startswith(""):
+                while i < len(readme_content) and not readme_content[i].startswith(":"):
                     i += 1
                 end = i
                 path = readme_content[start].split(":")[1].strip()
@@ -85,10 +85,10 @@ def test_script_path_extractor(
 
 # Define the `_read_script_content` method in the `CodeEmbedder` class
 class CodeEmbedder:
-    def __init__(self, readme_paths, script_content_reader, script_metadata_extractor):
+    def __init__(self, readme_paths, script_metadata_extractor, script_content_reader):
         self.readme_paths = readme_paths
-        self.script_content_reader = script_content_reader
         self.script_metadata_extractor = script_metadata_extractor
+        self.script_content_reader = script_content_reader
 
     def _read_script_content(self, scripts):
         script_contents = []

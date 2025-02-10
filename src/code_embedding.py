@@ -119,7 +119,7 @@ class CodeEmbedder:
             return None
         logger.info(
             f"Found script paths in README in path {readme_path}:\n"
-            f"{'\n'.join(script.path for script in scripts)}"
+            f"{set(script.path for script in scripts)}"
         )
         return scripts
 
@@ -137,7 +137,7 @@ class CodeEmbedder:
 
         for script in sorted(script_contents, key=lambda x: x.readme_start):
             updated_readme += readme_content[readme_content_cursor : script.readme_start + 1]
-            updated_readme += [script.content + "\n"]
+            updated_readme += script.content + "\n"
 
             readme_content_cursor = script.readme_end
 

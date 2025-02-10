@@ -1,4 +1,4 @@
-import re
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from loguru import logger
 
@@ -11,7 +11,19 @@ class ScriptMetadata:
     content: str
 
 
-class ScriptMetadataExtractor:
+class ScriptMetadataExtractorInterface(ABC):
+    @abstractmethod
+    def extract(self, readme_content: list[str]) -> list[ScriptMetadata]:
+        pass
+
+
+class ScriptContentReaderInterface(ABC):
+    @abstractmethod
+    def read(self, script_path: str) -> str:
+        pass
+
+
+class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
     def __init__(self) -> None:
         self._code_block_start_regex = r"^.*?:"
         self._code_block_end = ""
@@ -46,7 +58,7 @@ class ScriptMetadataExtractor:
         )
 
 
-class ScriptContentReader:
+class ConcreteScriptContentReader(ScriptContentReaderInterface):
     def read(self, script_path: str) -> str:
         try:
             with open(script_path) as script_file:
@@ -60,8 +72,8 @@ class CodeEmbedder:
     def __init__(
         self,
         readme_paths: list[str],
-        script_metadata_extractor: ScriptMetadataExtractor,
-        script_content_reader: ScriptContentReader,
+        script_metadata_extractor: ScriptMetadataExtractorInterface,
+        script_content_reader: ScriptContentReaderInterface,
     ) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor

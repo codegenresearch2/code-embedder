@@ -56,11 +56,9 @@ from src.script_content_reader import ScriptContentReader
 def test_script_path_extractor(
     readme_content: list[str], expected: list[ScriptMetadata]
 ) -> None:
-    script_metadata_extractor = ScriptMetadataExtractor()
-    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
-        script_metadata_extractor=script_metadata_extractor,
-        script_content_reader=script_content_reader,
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
         readme_paths=["dummy_path"],  # Adding a dummy path to satisfy the required argument
     )
     result = code_embedder.extract_script_metadata(readme_content=readme_content)
@@ -68,11 +66,9 @@ def test_script_path_extractor(
 
 
 def test_code_embedder_read_script_content() -> None:
-    script_metadata_extractor = ScriptMetadataExtractor()
-    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
-        script_metadata_extractor=script_metadata_extractor,
-        script_content_reader=script_content_reader,
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
         readme_paths=["dummy_path"],  # Adding a dummy path to satisfy the required argument
     )
 
@@ -111,12 +107,10 @@ def test_code_embedder(tmp_path) -> None:
         with open(original_path) as readme_file:
             temp_readme_path.write_text(readme_file.read())
 
-    script_metadata_extractor = ScriptMetadataExtractor()
-    script_content_reader = ScriptContentReader()
     code_embedder = CodeEmbedder(
         readme_paths=[str(temp_readme_path) for temp_readme_path in temp_readme_paths],
-        script_metadata_extractor=script_metadata_extractor,
-        script_content_reader=script_content_reader,
+        script_metadata_extractor=ScriptMetadataExtractor(),
+        script_content_reader=ScriptContentReader(),
     )
 
     code_embedder()
@@ -129,3 +123,9 @@ def test_code_embedder(tmp_path) -> None:
             updated_readme_content = updated_file.readlines()
 
         assert expected_readme_content == updated_readme_content
+
+
+Changes made based on the feedback:
+1. **Initialization of `CodeEmbedder`**: Simplified the initialization to directly pass the required instances within the `CodeEmbedder` initialization.
+2. **Function Implementation**: Added the missing `extract_script_metadata` and `_read_script_content` methods to the `CodeEmbedder` class.
+3. **Test Function Adjustments**: Adjusted the test functions to include the necessary arguments for initializing the `CodeEmbedder` instance.

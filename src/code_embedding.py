@@ -141,6 +141,8 @@ class CodeEmbedder:
         readme_content: list[str],
         readme_path: str,
     ) -> None:
+        script_contents.sort(key=lambda script: script.readme_start)
+
         updated_readme = []
         readme_content_cursor = 0
 

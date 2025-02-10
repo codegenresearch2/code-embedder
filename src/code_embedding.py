@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from loguru import logger
+import re
 
 
 @dataclass
@@ -37,7 +38,7 @@ class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
             if self._is_code_block_start(line):
                 current_block = self._start_new_block(line, row)
             elif self._is_code_block_end(line) and current_block:
-                scripts.append(self._finish_current_block(current_block, row))
+                scripts.append(self._finish_current_block(current_block, row, readme_content))
                 current_block = None
 
         return scripts
@@ -52,10 +53,12 @@ class ConcreteScriptMetadataExtractor(ScriptMetadataExtractorInterface):
         path = line.split(self._path_separator)[-1].strip()
         return {"start": row, "path": path}
 
-    def _finish_current_block(self, block: dict, end_row: int) -> ScriptMetadata:
-        return ScriptMetadata(
-            readme_start=block["start"], readme_end=end_row, path=block["path"], content=""
-        )
+    def _finish_current_block(self, block: dict, end_row: int, readme_content: list[str]) -> ScriptMetadata:
+        start_row = block["start"]
+        end_row = end_row
+        path = block["path"]
+        content = "\n".join(readme_content[start_row:end_row+1])
+        return ScriptMetadata(readme_start=start_row, readme_end=end_row, path=path, content=content)
 
 
 class ConcreteScriptContentReader(ScriptContentReaderInterface):

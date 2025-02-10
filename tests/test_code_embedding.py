@@ -3,7 +3,7 @@ from src.code_embedding import CodeEmbedder, ScriptMetadata
 from src.script_content_reader import ScriptContentReader
 from src.script_metadata_extractor import ScriptMetadataExtractor
 
-# Implement the `from_readme_content` class method in the `ScriptMetadata` class
+# Implement the `from_readme_content` method in the `ScriptMetadata` class
 class ScriptMetadata:
     def __init__(self, readme_start, readme_end, path, content=""):
         self.readme_start = readme_start
@@ -17,11 +17,12 @@ class ScriptMetadata:
         i = 0
         while i < len(readme_content):
             if readme_content[i].startswith(":"):
+                path = readme_content[i].split(":")[1].strip()
                 start = i
-                while not readme_content[i].startswith(""):
+                i += 1
+                while i < len(readme_content) and not readme_content[i].startswith(":"):
                     i += 1
                 end = i
-                path = readme_content[start].split(":")[1].strip()
                 content = "\n".join(readme_content[start+1:end])
                 metadata_list.append(cls(readme_start=start, readme_end=end, path=path, content=content))
             i += 1
@@ -32,7 +33,7 @@ class ScriptMetadata:
     [
         (
             [":main.py", "print('Hello, World!')", ""],
-            [ScriptMetadata(readme_start=0, readme_end=2, path="main.py", content="")],
+            [ScriptMetadata(readme_start=0, readme_end=2, path="main.py", content="print('Hello, World!')")],
         ),
         (["", "print('Hello, World!')", ""], []),
         ([], []),
@@ -47,7 +48,7 @@ class ScriptMetadata:
                 "print('Do not replace')",
                 "",
             ],
-            [ScriptMetadata(readme_start=0, readme_end=3, path="example.py", content="")],
+            [ScriptMetadata(readme_start=0, readme_end=3, path="example.py", content="import os\nprint('Hello, World!')")],
         ),
         (
             [
@@ -63,8 +64,9 @@ class ScriptMetadata:
                 "",
             ],
             [
-                ScriptMetadata(readme_start=0, readme_end=2, path="main.py", content=""),
-                ScriptMetadata(readme_start=3, readme_end=6, path="example.py", content="")],
+                ScriptMetadata(readme_start=0, readme_end=2, path="main.py", content="print('Hello, World!')"),
+                ScriptMetadata(readme_start=3, readme_end=6, path="example.py", content="import os\nprint('Hello, World!')"),
+            ],
         ),
     ],
     ids=[

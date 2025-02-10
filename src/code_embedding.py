@@ -93,8 +93,6 @@ class CodeEmbedder:
         if scripts is None:
             return
 
-        scripts.sort(key=lambda script: script.readme_start)
-
         script_contents = self._read_script_content(scripts=scripts)
         self._update_readme(
             script_contents=script_contents,

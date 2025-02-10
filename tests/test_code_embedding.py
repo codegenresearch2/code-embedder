@@ -14,15 +14,17 @@ class ScriptMetadata:
     @staticmethod
     def from_readme_content(readme_content):
         metadata_list = []
-        for i, line in enumerate(readme_content):
-            if line.startswith(":"):
+        i = 0
+        while i < len(readme_content):
+            if readme_content[i].startswith(":"):
                 start = i
-                while not readme_content[i].startswith(""):
+                while i < len(readme_content) and not readme_content[i].startswith(""):
                     i += 1
                 end = i
                 path = readme_content[start].split(":")[1].strip()
                 content = "\n".join(readme_content[start+1:end])
                 metadata_list.append(ScriptMetadata(readme_start=start, readme_end=end, path=path, content=content))
+            i += 1
         return metadata_list
 
 @pytest.mark.parametrize(

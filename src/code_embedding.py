@@ -51,15 +51,15 @@ class IScriptMetadataExtractor:
         pass
 
 
-class IScriptContentReader:
-    def read(self, path: str) -> str:
-        pass
-
-
 class ScriptMetadataExtractor(IScriptMetadataExtractor):
     def extract(self, readme_content: list[str]) -> list[ScriptMetadata] | None:
         extractor = ScriptPathExtractor()
         return extractor.extract(readme_content)
+
+
+class IScriptContentReader:
+    def read(self, path: str) -> str:
+        pass
 
 
 class ScriptContentReader(IScriptContentReader):
@@ -123,17 +123,12 @@ class CodeEmbedder:
         return scripts
 
     def _read_script_content(self, scripts: list[ScriptMetadata]) -> list[ScriptMetadata]:
-        script_contents: list[ScriptMetadata] = []
-
         for script in scripts:
             try:
                 script.content = self._script_content_reader.read(script.path)
-                script_contents.append(script)
-
             except FileNotFoundError:
                 logger.error(f"Error: {script.path} not found. Skipping.")
-
-        return script_contents
+        return scripts
 
     def _update_readme(
         self,

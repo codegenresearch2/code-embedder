@@ -1,16 +1,8 @@
-from src.script_metadata import ScriptMetadata
+# Updated conftest.py file
 
-def create_script_metadata(
-    start: int, end: int, path: str, extraction_part: str | None = None, content: str = ""
-) -> ScriptMetadata:
-    # Create and return a ScriptMetadata object with the provided parameters
-    return ScriptMetadata(
-        readme_start=start,
-        readme_end=end,
-        path=path,
-        extraction_part=extraction_part,
-        content=content,
-    )
+# Import necessary modules
+import pytest
 
+# Define fixtures or helper functions if needed
 
-In the updated code snippet, I've added the import statement at the beginning of the file to ensure that the `ScriptMetadata` class is recognized. I've also updated the comments to be more concise and relevant to the code. The overall structure of the function has been maintained to match the gold code.
+# Ensure that comments are properly formatted and do not interfere with the code structure

@@ -61,11 +61,10 @@ class ConcreteScriptContentReader(ScriptContentReaderInterface):
         return script_contents
 
 class CodeEmbedder:
-    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractorInterface, script_content_reader: ScriptContentReaderInterface, content: str) -> None:
+    def __init__(self, readme_paths: List[str], script_metadata_extractor: ScriptMetadataExtractorInterface, script_content_reader: ScriptContentReaderInterface) -> None:
         self._readme_paths = readme_paths
         self._script_metadata_extractor = script_metadata_extractor
         self._script_content_reader = script_content_reader
-        self._content = content
 
     def __call__(self) -> None:
         for readme_path in self._readme_paths:

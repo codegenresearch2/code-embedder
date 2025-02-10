@@ -57,8 +57,12 @@ class CodeEmbedder:
 
     def read_script_content(self, scripts):
         for script in scripts:
-            script.content = self.script_content_reader.read(script.path)
+            script.content = self.script_content_reader.read(script)
         return scripts
+
+    def __call__(self):
+        # Implement the logic for calling the CodeEmbedder instance
+        pass
 
 def test_code_embedder(tmp_path) -> None:
     original_paths = [
